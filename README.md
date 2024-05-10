@@ -3,7 +3,7 @@
 Build a golf hole and visualize the optimal path from tee to pin.
 
 <p align="center">
-  <img src="preview.png" width="400" height="150"/>
+  <img src="preview.gif" width="600" height="250"/>
 </p>
 
 ## Description
