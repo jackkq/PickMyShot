@@ -52,7 +52,7 @@ class PathCreator:
                     curr_v.edges.append(Edge(end, new_weight, club))
                 else:
                     spacing = 5 # 2 yards apart
-                    theta = 0
+                    theta = pi/2
                     while theta < pi:
                         x = curr_v.x + dist*cos(theta)
                         y = curr_v.y + dist*sin(theta)
@@ -66,23 +66,43 @@ class PathCreator:
                             self.vertices.append(new_v)
                             num_vertices_added += 1
                         theta += spacing/dist
+                    theta = pi/2
+                    while theta > 0:
+                        x = curr_v.x + dist*cos(theta)
+                        y = curr_v.y + dist*sin(theta)
+                        if self.new_vertex_valid(x,y):
+                            new_v = Vertex(x,y)  
+                            h_prox = self.get_hazard_prox(x,y)
+                            num_obs = self.get_num_obs(curr_v.x, curr_v.y, x, y)
+                            lie = self.get_lie(curr_v.x, curr_v.y)
+                            new_weight = self.calc_weight(lie, self.wind, dist, num_obs, h_prox) 
+                            curr_v.edges.append(Edge(new_v, new_weight, club))
+                            self.vertices.append(new_v)
+                            num_vertices_added += 1
+                        theta -= spacing/dist
         self.vertices.append(end)
 
     
     def calc_weight(self, lie, wind, club_dist, num_obs, prox_hazard):
-        lie_weights = {'rough':0.7, 'fairway':0.5, 'bunker':0.95}
+        lie_weights = {'rough':0.7, 'fairway':0.1, 'bunker':0.95}
         wind_weights = {'none':0.2, 'moderate':0.5, 'high':0.7}
+
+        norm_prox_hazard = prox_hazard/self.course_width
+        norm_num_obs = num_obs/10
+        norm_shot_dist = club_dist/(self.course_length**2+self.course_width**2)**0.5
+        return 0.2*lie_weights[lie]+0.2*norm_shot_dist*wind_weights[wind] + 0.3*norm_num_obs + 0.3*norm_prox_hazard
+
         #TODO: does this make sense
         norm_shot_dist = club_dist/self.course_length
         norm_num_obs = num_obs
         norm_prox_hazard = prox_hazard
-        return 0.3*lie_weights[lie]+0.2*norm_shot_dist*wind_weights[wind] + 0.4*norm_num_obs + 0.1*norm_prox_hazard
 
     def new_vertex_valid(self, x, y):
         return y >= 0 and y <= self.course_width and x >=0 and x <= self.course_length and self.get_hazard_prox(x,y)>=1
 
     def get_hazard_prox(self, x1, y1):
-        curr_min = float('inf')
+        # curr_min is out of bounds
+        curr_min = min(y1, self.course_width-y1)
         for (x,y) in self.hazards:
             distance = ((x1 - x)**2 + (y1 - y)**2)**0.5
             if distance < curr_min:
@@ -96,6 +116,8 @@ class PathCreator:
             intercept = y1 - slope * x1
             if abs(y - (slope * x + intercept)) <= 1:
                 count+=1
+            if count == 10:
+                break
         return count
 
     def get_lie(self, x, y):
@@ -134,7 +156,7 @@ class PathCreator:
 
     def heuristic(self, start, end):
         max_dist = (self.course_width**2+self.course_length**2)**0.5
-        return ((start.x-end.x)**2 + (start.y-end.y)**2)**0.5
+        return ((start.x-end.x)**2 + (start.y-end.y)**2)**0.5/max_dist
 
     def reconstruct_path(self, current):
         path = []

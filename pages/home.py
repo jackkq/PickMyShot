@@ -72,32 +72,50 @@ layout = html.Div([
                             },
                             {
                                 "label":
-                                    html.Span("Fairway", style={'font-size': 15, 'padding-left': 10}),
+                                    [
+                                        html.Img(src=get_asset_url('lawngreen.png'), height=20, width=20),
+                                        html.Span("Fairway", style={'font-size': 15, 'padding-left': 10})
+                                    ],
                                 "value": "Fairway",
                             },
                                                         {
                                 "label":
-                                    html.Span("Rough", style={'font-size': 15, 'padding-left': 10}),
+                                    [
+                                        html.Img(src=get_asset_url('darkgreen.png'),  height=20, width=20),
+                                        html.Span("Rough", style={'font-size': 15, 'padding-left': 10})
+                                    ],  
                                 "value": "Rough",
                             },
                                                         {
                                 "label":
-                                    html.Span("Tree", style={'font-size': 15, 'padding-left': 10}),
+                                    [
+                                        html.Img(src=get_asset_url('olive.png'),  height=20, width=20),
+                                        html.Span("Tree", style={'font-size': 15, 'padding-left': 10})
+                                    ],
                                 "value": "Tree",
                             },
                                                         {
-                                "label":
-                                    html.Span("Bunker", style={'font-size': 15, 'padding-left': 10}),
+                               "label":
+                                    [
+                                        html.Img(src=get_asset_url('darkkhaki.png'),  height=20, width=20),
+                                        html.Span("Bunker", style={'font-size': 15, 'padding-left': 10})
+                                    ],
                                 "value": "Bunker",
                             },
                                                         {
                                 "label":
-                                    html.Span("Water Hazard", style={'font-size': 15, 'padding-left': 10}),
+                                    [
+                                        html.Img(src=get_asset_url('steelblue.png'),  height=20, width=20),
+                                        html.Span("Water Hazard", style={'font-size': 15, 'padding-left': 10})
+                                    ],
                                 "value": "Water Hazard",
                             },
                                                         {
                                 "label":
-                                    html.Span("Other Obstacle", style={'font-size': 15, 'padding-left': 10}),
+                                    [
+                                        html.Img(src=get_asset_url('grey.png'),  height=20, width=20),
+                                        html.Span("Other Obstacle", style={'font-size': 15, 'padding-left': 10})
+                                    ],
                                 "value": "Other Obstacle",
                             },
                         ],  id='obj-selection', value='Tee')),
@@ -234,9 +252,8 @@ def generate_path(n_clicks, data, wind_val):
     path, path_clubs = path_creator.run_search()
     path_x = [v.x for v in path]
     path_y = [v.y for v in path]
-    fig = get_figure(df)
-    fig.add_scatter(x=path_x, y=path_y, mode='lines+markers', line=dict(color='black'), marker=dict(color='black', size=10, symbol='square'))
-    fig.data = fig.data[::-1]
+    fig = get_figure(df, path_x, path_y)
+    #fig.add_scatter(x=path_x, y=path_y, mode='lines+markers', line=dict(color='black'), marker=dict(color='black', size=10, symbol='square'))
 
     shot_distances = calc_shot_distances(path_x, path_y)
     '''
@@ -259,7 +276,7 @@ def calc_shot_distances(x_vals, y_vals):
         distances.append(int(dist))
     return distances
 
-def get_figure(df):
+def get_figure(df, path_x=None, path_y=None):
     fig = px.scatter(df, x="x", y="y", custom_data=["x", "y"], color='obj',color_discrete_map=obj_map)
     fig.update_layout(clickmode='event+select')
 
@@ -295,8 +312,8 @@ def get_figure(df):
                 yanchor="middle",
                 x=x,
                 y=y,
-                sizex=1,
-                sizey=1,
+                sizex=8,
+                sizey=8,
             )
         )
     if not pin_row.empty:
@@ -311,9 +328,21 @@ def get_figure(df):
                 yanchor="middle",
                 x=x,
                 y=y,
-                sizex=1,
-                sizey=1,
+                sizex=8,
+                sizey=8,
             )
         )
+    
+    #fig.add_scatter(x=path_x, y=path_y, mode='lines+markers', line=dict(color='black'), marker=dict(color='black', size=10, symbol='square'))
+    #fig.data = fig.data[::-1]
+    fig.add_trace(
+        go.Scattergl(
+            x=path_x,
+            y=path_y,
+            mode='lines+markers', 
+            line=dict(color='black'), 
+            marker=dict(color='black', size=10, symbol='square')
+        )
+    )
 
     return fig
