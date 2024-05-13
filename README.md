@@ -16,7 +16,7 @@ This program allows a user to build a custom golf hole, input their available cl
 
 1. Install Anaconda. Installation instructions can be found [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 2. Clone this repository or download using Code -> Download ZIP and unpack the .zip file.
-3. Open the Anaconda Prompt and enter
+3. Open the Anaconda Prompt, navigate to the project folder and enter
    ```
    conda env create -f environment.yml
    ```
@@ -28,7 +28,7 @@ This program allows a user to build a custom golf hole, input their available cl
    ```
    conda activate pickmyshot
    ```
-2. Navigate to the project's folder.
+2. Navigate to the project folder.
 3. Run the app using
    ```
    python app.py
