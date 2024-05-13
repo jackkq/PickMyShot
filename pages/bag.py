@@ -4,7 +4,6 @@ import dash_bootstrap_components as dbc
 from pathlib import Path
 path = Path("bag.py")
 path.parent.absolute()
-import base64
 
 dash.register_page(__name__)
 
@@ -54,6 +53,14 @@ layout = html.Div([
     prevent_initial_call='initial_duplicate'
 )
 def add_row(n_clicks, rows, columns):
+    """
+    Adds a row to the table.
+
+    Args:
+        n_clicks (int): The number of times the add row button was clicked.
+        rows (list of {column_id: column_value}): The rows in the table.
+        columns (list): The columns in the table.
+    """
     if n_clicks > 0:
         rows.append({c['id']: '' for c in columns})
     return rows
@@ -65,6 +72,13 @@ def add_row(n_clicks, rows, columns):
     prevent_initial_call = True
 )
 def update_clubs_data(pathname, data):
+    """
+    Stores the data in the table in the clubs-data dcc.Store component when the url leaves 'bag'.
+
+    Args:
+        pathname (str): The path name of the new url.
+        data (dict): The data contained in the table.
+    """
     return data
 
 @callback(
@@ -73,4 +87,11 @@ def update_clubs_data(pathname, data):
     State('clubs-data', 'data')    
 )
 def load_data_from_store(pathname, data):
+    """
+    Loads the data from the clubs-data dcc.Store component into the table when the url enters 'bag'.
+
+    Args:
+        pathname (str): The path name of the new url.
+        data (dict): The data contained in the Store component.
+    """
     return data

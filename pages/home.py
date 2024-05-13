@@ -9,9 +9,9 @@ import pandas as pd
 
 register_page(__name__, path='/')
 
-df = None
-cl = None
-cw = None
+df = None # Dataframe for course
+cl = None # Course length
+cw = None # Course width
 
 obj_map = {
     'None': 'rgba(0, 0, 0, 0)',
@@ -137,6 +137,15 @@ layout = html.Div([
         prevent_initial_call=True
 )
 def reset_graph(n_clicks):
+    """
+    Resets the graph to all fairway.
+
+    Args:
+        n_clicks (int): The number of times the reset button was clicked.
+
+    Returns:
+        The new figure.
+    """
     global df
     df['obj'] = 'Fairway'
     return get_figure(df)
@@ -150,6 +159,17 @@ def reset_graph(n_clicks):
     prevent_initial_call=True
 )
 def generate_initial_graph(n_clicks, new_cl, new_cw):
+    """
+    Generates the graph from the inputted course length and width.
+
+    Args:
+        n_clicks (int): The number of times the start button was clicked.
+        new_cl (str): The inputted course length.
+        new_cw: The inputted course width.
+    
+    Returns:
+        The new figure, the style of the graph to make it visible.
+    """
     global df
     global cl
     global cw
@@ -183,19 +203,30 @@ def generate_initial_graph(n_clicks, new_cl, new_cw):
     prevent_initial_call=True
 )
 def clicked_point(clickData, obj_sel):
+    """
+    Handles changing a point on the graph when it is clicked.
+
+    Args:
+        clickData (dict): The data of the user's click.
+        obj_sel (str): The selected object to place on the point.
+
+    Returns:
+        The new figure.
+    """
     global df
+
     # Get clicked point coordinates
     x = clickData["points"][0]["x"]
     y = clickData["points"][0]["y"]
 
+    # Clear all previous tees or pins if that is what needs to be placed
     if obj_sel == 'Tee' or obj_sel == 'Pin':
         df.loc[df['obj'] == obj_sel, 'obj']='Fairway'
 
     index_to_update = df.loc[(df['x'] == x) & (df['y'] == y)].index[0]
 
-    # Update the value of "clicked" column to True for the found index
+    # Update the value of "clicked" column 
     df.loc[index_to_update, 'obj'] = obj_sel
-
 
     # Add clicked point to the figure data
     return get_figure(df)
@@ -207,8 +238,19 @@ def clicked_point(clickData, obj_sel):
     prevent_initial_call=True
 )
 def selected_points(selectedData, obj_sel):
+    """
+    Handles changing points on the graph when they are selected.
+
+    Args:
+        selectedData (dict): The data of the user's selection.
+        obj_sel (str): The selected object to place on the points.
+
+    Returns:
+        The new figure.
+    """
     global df
-    # Get clicked point coordinates
+
+    # Get clicked point coordinates and update dataframe
     for pt in selectedData['points']:
         x = pt["x"]
         y = pt["y"]
@@ -229,15 +271,24 @@ def selected_points(selectedData, obj_sel):
     prevent_initial_call=True
 )
 def generate_path(n_clicks, data, wind_val):
+    """
+    Generates the path on the graph.
+
+    Args:
+        n_clicks (int): The number of times that the generate graph button is clicked.
+        data (dict): The clubs and their distances.
+        wind_val (str): The strength of the wind.
+
+    Returns
+        The new figure, an HTML component with the list of clubs to hit.
+    """
+    # Prepare inputs to PathCreator
     start = df.loc[df['obj'] == 'Tee']
     start = Vertex(start['x'].iloc[0], start['y'].iloc[0])
     end = df.loc[df['obj'] == 'Pin']
     end = Vertex(end['x'].iloc[0], end['y'].iloc[0])
-    #clubs={'driver':50,
-     # '3-wood':20,
-      #'7-iron':10}
+
     clubs = {row['club-column']: int(row['dist-column']) for row in data}
-    data=[{c: '' for c in ('club-column', 'dist_column')}]
     hazard_rows = df[df['obj'].isin(['Tree', 'Water Hazard', 'Other Obstacle'])]
     hazards = list(zip(hazard_rows['x'], hazard_rows['y']))
     wind=wind_val.lower()
@@ -247,21 +298,16 @@ def generate_path(n_clicks, data, wind_val):
     roughs = list(zip(rough_rows['x'], rough_rows['y']))
     bunker_rows = df[df['obj'] == 'bunker']
     bunkers = list(zip(bunker_rows['x'], bunker_rows['y']))
+
+    # Calculate optimal path.
     path_creator = PathCreator(cw, cl, hazards, start, end, clubs, wind, fairways, roughs, bunkers)
     path_creator.make_graph(start, end, clubs)
     path, path_clubs = path_creator.run_search()
     path_x = [v.x for v in path]
     path_y = [v.y for v in path]
     fig = get_figure(df, path_x, path_y)
-    #fig.add_scatter(x=path_x, y=path_y, mode='lines+markers', line=dict(color='black'), marker=dict(color='black', size=10, symbol='square'))
 
     shot_distances = calc_shot_distances(path_x, path_y)
-    '''
-    clubs_str = []
-    clubs_str.append('**Optimal Path**')
-    for i in range(1, len(path_clubs)+1):
-        clubs_str.append("**{}**. {}: {} yards".format(i, path_clubs[i-1], shot_distances[i-1]))
-    '''
     clubs_str = []
     clubs_str.append(html.B('Optimal Path', style={'margin-bottom':'10px'}))
     for i in range(1, len(path_clubs)+1):
@@ -270,6 +316,13 @@ def generate_path(n_clicks, data, wind_val):
     return fig, html.Ol(clubs_str)
 
 def calc_shot_distances(x_vals, y_vals):
+    """
+    Returns the distances of each shot in the path.
+
+    Args:
+        x_vals (list of float): The x values in the path.
+        y_vals (lsit of float): The y values in the path.
+    """
     distances = []
     for i in range(len(x_vals)-1):
         dist = ((x_vals[i]-x_vals[i+1])**2 + (y_vals[i]-y_vals[i+1])**2)**0.5
@@ -277,9 +330,19 @@ def calc_shot_distances(x_vals, y_vals):
     return distances
 
 def get_figure(df, path_x=None, path_y=None):
+    """
+    Generates a figure from the dataframe.
+
+    Args:
+        df (Dataframe): Contains the data of each point.
+        path_x (list of float): The x values in the optimal path.
+        path_y (list of float): The y values in the optimal path.
+    
+        Returns:
+            The figure.
+    """
     fig = px.scatter(df, x="x", y="y", custom_data=["x", "y"], color='obj',color_discrete_map=obj_map)
     fig.update_layout(clickmode='event+select')
-
     fig.update_traces(opacity=1)
     fig.update_layout({
         'plot_bgcolor': 'rgba(0, 0, 0, 0)',
@@ -288,16 +351,17 @@ def get_figure(df, path_x=None, path_y=None):
         'height': 600
     })
     fig.update_layout(showlegend=False, yaxis_title=None, xaxis_title=None)
+    # Add border
     fig.update_xaxes(showline=True,
          linewidth=1,
          linecolor='black',
          mirror=True)
-
     fig.update_yaxes(showline=True,
          linewidth=1,
          linecolor='black',
          mirror=True)
     
+    # Places the tee and pin images
     tee_row = df[df['obj'] == 'Tee']
     pin_row = df[df['obj'] == 'Pin']
     if not tee_row.empty:
@@ -333,8 +397,7 @@ def get_figure(df, path_x=None, path_y=None):
             )
         )
     
-    #fig.add_scatter(x=path_x, y=path_y, mode='lines+markers', line=dict(color='black'), marker=dict(color='black', size=10, symbol='square'))
-    #fig.data = fig.data[::-1]
+    # Adds the optimal path to the figure (if supplied)
     fig.add_trace(
         go.Scattergl(
             x=path_x,

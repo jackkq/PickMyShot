@@ -12,6 +12,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=external_stylesheets, use_pages=True)
 
 app.layout=html.Div([
+    # Used to store the clubs and carry distances
     dcc.Store(id='clubs-data', storage_type='session'),
     page_container
 ])
