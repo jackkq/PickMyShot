@@ -43,5 +43,5 @@ This program allows a user to build a custom golf hole, input their available cl
 
 ## Author
 
-Jack Quirion 
+Jack Quirion\
 <jquir073@uottawa.ca>
