@@ -22,7 +22,7 @@ This program allows a user to build a custom golf hole, input their available cl
    ```
    to create a new environment named "pickmyshot" with the required dependencies.
 
-### Executing program
+### Executing the program
 
 1. Open the Anaconda Prompt and activate the environment
    ```
