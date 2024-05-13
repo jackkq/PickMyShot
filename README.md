@@ -35,6 +35,12 @@ This program allows a user to build a custom golf hole, input their available cl
    ```
 4. Open a browser and enter "localhost:8050" in the search bar.
 
+## Ongoing Additions
+
+1. Incorporate stochastic elements into shot cost (needs more research into how the factors would affect probability of shot success).
+2. Allow users to upload an image of the hole map and convert this into a PickMyShot hole.
+3. Allow users to upload their shots for a specific hole to enable a dynamic weigth calculation based on previous performance.
+
 ## Author
 
 Jack Quirion 
